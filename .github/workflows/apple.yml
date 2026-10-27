@@ -1,0 +1,13 @@
+name: Apple validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Test engine and build Apple apps
+        run: bash scripts/validate_apple.sh
