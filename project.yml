@@ -1,0 +1,30 @@
+name: LastLine
+options:
+  bundleIdPrefix: com.lastline
+  deploymentTarget:
+    iOS: '18.0'
+    macOS: '15.0'
+packages:
+  LastLineCore:
+    path: .
+targets:
+  LastLine:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources: [App]
+    dependencies:
+      - package: LastLineCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lastline.prototype
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: '5.9'
+        TARGETED_DEVICE_FAMILY: '1,2'
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        CODE_SIGN_STYLE: Automatic
+schemes:
+  LastLine:
+    build:
+      targets:
+        LastLine: all
