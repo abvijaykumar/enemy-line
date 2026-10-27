@@ -6,7 +6,7 @@ import LastLineCore
 final class GameSession: ObservableObject {
     @Published var mission = Mission()
     @Published var started = false
-    var firing = false
+    @Published var firing = false
     let world = Entity()
     let officer = Entity()
     private var threatModels: [Int: Entity] = [:]
@@ -88,7 +88,7 @@ struct GameView: View {
             })
             VStack(spacing: 12) {
                 HStack {
-                    Text("LAST LINE").font(.headline).tracking(4)
+                    Text("ENEMY LINE").font(.headline).tracking(4)
                     Spacer()
                     Button(session.mission.paused ? "Resume" : "Pause") {
                         session.firing = false
@@ -102,33 +102,37 @@ struct GameView: View {
                     Text(session.mission.recruited ? "ALLY +1" : "SOLO").font(.caption.bold())
                 }
                 Text(session.mission.objective).font(.headline)
-                ProgressView(value: min(session.mission.distance, 225), total: 225).tint(.yellow)
+                CheckpointStrip(distance: session.mission.distance)
+                if session.mission.phase == .running {
+                    Text("\(max(0, Int(120 - session.mission.distance))) m")
+                        .font(.title3.bold()).foregroundStyle(TacticalStyle.amber)
+                } else if session.mission.phase == .camp {
+                    Text("\(session.mission.threats.filter { (4...6).contains($0.id) && $0.health > 0 }.count) DEFENDERS LEFT")
+                        .font(.caption.bold()).foregroundStyle(TacticalStyle.amber)
+                }
                 Spacer()
                 if session.mission.phase == .camp {
-                    Text("Release fire for cover · Switch lanes to target defenders")
-                        .font(.caption).padding(10).background(.black.opacity(0.7), in: Capsule())
+                    Label(session.firing ? "ENGAGING" : "IN COVER", systemImage: "shield.fill")
+                        .font(.caption.bold()).padding(.horizontal, 18).padding(.vertical, 10)
+                        .background(session.firing ? TacticalStyle.panel : TacticalStyle.olive, in: Capsule())
+                    Text("Hold FIRE to engage · Switch lanes to target defenders")
+                        .font(.caption2).foregroundStyle(.white.opacity(0.85))
                 }
                 HStack(alignment: .bottom) {
                     VStack {
                         HStack {
-                            Button { session.mission.move(-1) } label: { Image(systemName: "arrow.left") }
-                            Button { session.mission.move(1) } label: { Image(systemName: "arrow.right") }
+                            TacticalControl(symbol: "chevron.left", label: "Move left") { session.mission.move(-1) }
+                            TacticalControl(symbol: "chevron.right", label: "Move right") { session.mission.move(1) }
                         }
-                        Button("Jump") { session.mission.jump() }
+                        if session.mission.phase != .camp {
+                            TacticalControl(symbol: "arrow.up", label: "Jump") { session.mission.jump() }
+                        }
                     }
                     Spacer()
                     VStack(spacing: 16) {
                         Button(session.mission.reloading ? "Reloading…" : "\(session.mission.ammo) / \(session.mission.reserve)") { session.mission.reload() }
-                        Text("FIRE")
-                            .font(.headline).frame(width: 92, height: 92)
-                            .background(.black.opacity(0.7), in: Circle())
-                            .overlay(Circle().stroke(.yellow, lineWidth: 2))
-                            .gesture(DragGesture(minimumDistance: 0)
-                                .onChanged { _ in session.firing = true }
-                                .onEnded { _ in session.firing = false })
-                            .accessibilityLabel("Fire; hold to shoot")
-                            .accessibilityAddTraits(.isButton)
-                            .accessibilityAction { session.firing = true }
+                        FireControl(firing: $session.firing)
+                            .disabled(session.mission.paused || session.mission.terminal)
                     }
                 }
                 .buttonStyle(.borderedProminent).tint(.black.opacity(0.7))
@@ -140,9 +144,16 @@ struct GameView: View {
                     .frame(height: 230).ignoresSafeArea()
             }
             if !session.started || session.mission.terminal {
-                Color.black.opacity(0.8).ignoresSafeArea()
+                LinearGradient(colors: [.black.opacity(0.25), .black.opacity(0.95)], startPoint: .top, endPoint: .bottom)
+                    .ignoresSafeArea()
                 VStack(spacing: 20) {
-                    Text(session.started ? session.mission.objective : "LAST LINE").font(.largeTitle.bold())
+                    if !session.started {
+                        Text("BEHIND THE LINE").font(.caption).tracking(5)
+                        Spacer(minLength: 30)
+                        Text("OPERATION 01").font(.caption).tracking(4).foregroundStyle(TacticalStyle.amber)
+                        Text("CRASH VALLEY").font(.system(.largeTitle, design: .rounded, weight: .heavy))
+                    }
+                    Text(session.started ? session.mission.objective : "ENEMY LINE").font(.largeTitle.bold())
                     Text(session.started ? "Shots: \(session.mission.shots) · Hits: \(session.mission.hits)" : "Survive the crash. Capture Ridge Camp. Bring an ally home.")
                         .multilineTextAlignment(.center)
                     Text("Swipe or use arrows to dodge. Hold FIRE to shoot enemies in your lane. At camp, release FIRE to take cover.")
@@ -150,7 +161,10 @@ struct GameView: View {
                     Button(session.started ? "Retry mission" : "Begin mission") {
                         session.restart()
                         lastFrame = nil
-                    }.buttonStyle(.borderedProminent).tint(.orange)
+                    }
+                    .font(.headline).foregroundStyle(.black)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .background(TacticalStyle.amber, in: RoundedRectangle(cornerRadius: 12))
                 }.foregroundStyle(.white).padding(32).frame(maxWidth: 500)
             } else if session.mission.paused {
                 Text("PAUSED").font(.largeTitle.bold()).foregroundStyle(.white)
@@ -170,5 +184,7 @@ struct GameView: View {
             }
             lastFrame = nil
         }
+        .onChange(of: session.mission.paused) { _, _ in session.firing = false }
+        .onChange(of: session.mission.terminal) { _, _ in session.firing = false }
     }
 }

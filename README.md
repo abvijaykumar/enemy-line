@@ -1,4 +1,4 @@
-# Last Line
+# Enemy Line
 
 Native Apple third-person combat runner. First milestone: a playable blockout of Crash Valley, not production graphics.
 
@@ -37,3 +37,7 @@ This workspace is Linux and has neither Swift nor Xcode. The source has **not be
 4. Validate sustained performance, then add more missions, vehicles, and helicopters.
 
 No multiplayer, monetization, backend, or external asset dependencies are included. The original concept assumed iOS 17/macOS 14; this prototype raises the baseline to iOS 18/macOS 15 to use RealityView across the requested platforms.
+
+## Visual target
+
+See [visual quality criteria](VISUAL_QUALITY.md) and the [approved concept screens](Design/enemy-line-concept.png). The interface now uses the concept’s amber controls, checkpoint markers, mission distance, and cover indicators. Production 3D assets and on-device visual/performance validation remain outstanding.
