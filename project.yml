@@ -11,18 +11,30 @@ targets:
   LastLine:
     type: application
     supportedDestinations: [iOS, macOS]
-    sources: [App]
+    sources:
+      - path: App
+        excludes: [Resources, EnemyLine.entitlements]
+      - path: App/Resources
+        buildPhase: resources
     dependencies:
       - package: LastLineCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lastline.prototype
         GENERATE_INFOPLIST_FILE: YES
-        SWIFT_VERSION: '5.9'
+        INFOPLIST_KEY_CFBundleDisplayName: Enemy Line
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.action-games
+        SWIFT_VERSION: '5.0'
         TARGETED_DEVICE_FAMILY: '1,2'
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         CODE_SIGN_STYLE: Automatic
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/EnemyLine.entitlements
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        MARKETING_VERSION: '0.1.0'
+        CURRENT_PROJECT_VERSION: '1'
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 schemes:
   LastLine:
     build:

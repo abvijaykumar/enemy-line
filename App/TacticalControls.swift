@@ -26,6 +26,9 @@ struct TacticalControl: View {
 
 struct FireControl: View {
     @Binding var firing: Bool
+    var aim: (Int) -> Void = { _ in }
+    var baseLane = 0
+    var compact = false
     @GestureState private var held = false
     @State private var accessibleFiring = false
 
@@ -35,11 +38,16 @@ struct FireControl: View {
             Text("FIRE").font(.caption.bold())
         }
         .foregroundStyle(TacticalStyle.amber)
-        .frame(width: 96, height: 96)
+        .frame(width: compact ? 76 : 96, height: compact ? 76 : 96)
         .background(held || accessibleFiring ? TacticalStyle.olive : TacticalStyle.panel, in: Circle())
         .overlay(Circle().stroke(TacticalStyle.amber, lineWidth: 3))
         .contentShape(Circle())
-        .gesture(DragGesture(minimumDistance: 0).updating($held) { _, state, _ in state = true })
+        .gesture(DragGesture(minimumDistance: 0)
+            .updating($held) { _, state, _ in state = true }
+            .onChanged { value in
+                let offset = value.translation.width > 25 ? 1 : (value.translation.width < -25 ? -1 : 0)
+                aim(min(1, max(-1, baseLane + offset)))
+            })
         .onChange(of: held) { _, value in firing = value || accessibleFiring }
         .onChange(of: firing) { _, value in if !value { accessibleFiring = false } }
         .onDisappear { firing = false; accessibleFiring = false }

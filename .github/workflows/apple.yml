@@ -1,17 +1,13 @@
 name: Apple validation
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Test mission simulation
-        run: swift test
       - name: Install XcodeGen
         run: brew install xcodegen
-      - name: Generate app project
-        run: xcodegen generate
-      - name: Build iOS simulator
-        run: xcodebuild -project LastLine.xcodeproj -scheme LastLine -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
-      - name: Build native Mac app
-        run: xcodebuild -project LastLine.xcodeproj -scheme LastLine -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
+      - name: Test engine and build Apple apps
+        run: bash scripts/validate_apple.sh

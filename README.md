@@ -1,43 +1,64 @@
 # Enemy Line
 
-Native Apple third-person combat runner. First milestone: a playable blockout of Crash Valley, not production graphics.
+An offline, native Apple third-person combat runner. A lone officer survives a helicopter crash, captures enemy camps, rescues allies, and fights toward extraction. iPhone-first, with adaptive iPad and native Mac layouts.
 
-## Open on a Mac
+## Run on a Mac
 
-Requires Xcode 16+, iOS/iPadOS 18+ or macOS 15+, and XcodeGen (`brew install xcodegen`).
+Requires Xcode 16+, iOS/iPadOS 18+ or macOS 15+, and XcodeGen 2.42+.
 
 ```sh
+brew install xcodegen
 xcodegen generate
 open LastLine.xcodeproj
 ```
 
-Select the LastLine scheme and an iPhone simulator, iPad simulator, or My Mac. For a physical device, select your own signing team and a unique bundle identifier in Xcode. No signing credentials are stored in this repository.
+Choose the **LastLine** scheme and an iPhone/iPad simulator or My Mac. For physical devices, configure your signing team and a unique bundle ID in Xcode. No credentials are included.
 
-## Current prototype
+## Implemented
 
-- RealityKit 3D scene with a following-camera composition and procedural blockout geometry.
-- Three movement lanes, jump, press-and-hold fire, assisted lane targeting, ammunition and reload.
-- Infantry encounters, obstacle damage, automatic stop at Ridge Camp, cover while not firing.
-- Three camp defenders; clearing them recruits an ally who fires independently.
-- Extraction, defeat, results, retry, pause, and automatic pause on backgrounding.
-- Shared deterministic Swift mission simulation with XCTest coverage.
-- Shared iPhone, iPad, and native macOS app target, touch/pointer buttons.
+- Campaign operation selection and sequential unlocking: Crash Valley, Convoy Road, Last Flight.
+- Infantry, gunner, vehicle, and helicopter threats; three difficulty settings.
+- Three-lane auto-run, jump, slide, drag-to-aim fire, aim assistance, optional automatic fire, reload, and limited grenades.
+- Cover battles, enemy camp capture, ally rescue, squad support, health and ammunition resupply, extraction, defeat, replay, and results.
+- Local autosave, resume, milestone checkpoint recovery, best completion records, settings, and campaign reset confirmation.
+- Procedural soldier/vehicle/helicopter models, moving jungle scenery, camp buildings, sandbags, watchtower, crash wreck, squad followers, rotor and leg animation, tracers, muzzle flashes, explosions, and damage feedback.
+- Bundled original synthesized sound effects, optional iPhone haptics, and reduced motion/battery saver options.
+- Touch/pointer controls, hardware keyboard controls, extended gamepad support, accessibility labels and accessible firing toggle.
+- Application background pause, cancellation-aware input, local privacy manifest, and no backend or network requirement.
 
-Swipe left/right or tap arrows to switch lanes. Swipe up or tap Jump to clear obstacles. Hold FIRE to shoot threats in your lane. At the camp, switch lanes to defeat all three defenders; releasing FIRE returns to cover. Tap ammunition to reload.
+## Controls
 
-## Validation status
+| Action | Touch | Keyboard | Controller |
+|---|---|---|---|
+| Change lane | Swipe / arrow buttons | A/D or arrows | D-pad |
+| Jump / slide | Swipe up/down / buttons | W/S or arrows | A/B |
+| Shoot | Hold FIRE | Hold Space | Right trigger |
+| Aim | Drag horizontally on FIRE | Move lane | Move lane |
+| Reload | Tap ammunition | R | X |
+| Grenade | Tap burst icon | G | Left shoulder |
+| Pause | Pause button | Escape | Menu |
 
-This workspace is Linux and has neither Swift nor Xcode. The source has **not been compiled or playtested** here. GitHub Actions is configured to run Swift tests and build both Apple destinations after the repository is connected. Physical-device frame timing and thermals remain unmeasured.
+At camp, release FIRE for cover; automatic fire can be disabled in settings. Destroy all defenders to recruit an ally and continue. Progress is stored locally using UserDefaults. Continue resumes the latest autosave; Retry checkpoint restores a milestone. A new mission replaces the current resumable mission.
 
-## Next milestones
+## Validation
 
-1. Compile and playtest on a Mac; fix platform/API issues and tune the core loop on a physical iPhone.
-2. Add checkpoint persistence, drag aiming, controller/keyboard input, and accessibility improvements. Slide and grenades are not implemented yet.
-3. Replace blockout geometry with licensed realistic assets, character animation, camp scenery, audio, haptics, and scalable graphics settings.
-4. Validate sustained performance, then add more missions, vehicles, and helicopters.
+```sh
+swift test
+xcodegen generate
+xcodebuild -project LastLine.xcodeproj -scheme LastLine -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project LastLine.xcodeproj -scheme LastLine -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
+```
 
-No multiplayer, monetization, backend, or external asset dependencies are included. The original concept assumed iOS 17/macOS 14; this prototype raises the baseline to iOS 18/macOS 15 to use RealityView across the requested platforms.
+GitHub Actions runs these checks when the code is uploaded. Core tests cover campaign completion at every difficulty, unlocking, deterministic save restoration, cover, grenades, jumping/sliding, reloads, frame rates, and paused/invalid time handling.
 
-## Visual target
+**Validation performed:** Swift 6.0.3 on Linux compiled the core engine and passed all 12 XCTest tests, including every operation at every difficulty. Swift parsed all app files successfully. Local packaging checks passed for configuration, resources, privacy, audio, and icons.
 
-See [visual quality criteria](VISUAL_QUALITY.md) and the [approved concept screens](Design/enemy-line-concept.png). The interface now uses the concept’s amber controls, checkpoint markers, mission distance, and cover indicators. Production 3D assets and on-device visual/performance validation remain outstanding.
+**Not validated:** SwiftUI/RealityKit type checking, Apple builds, physical-device gameplay, accessibility, graphics performance, and thermals. This environment has no Xcode. Parsing does not establish platform API correctness. See [release checks](RELEASE_CHECKLIST.md).
+
+## Art and release status
+
+The game is a self-contained **procedural-art implementation**, not a photorealistic production release. No purchased/downloaded character or environment assets are included. The [concept screens](Design/enemy-line-concept.png) and [visual quality criteria](VISUAL_QUALITY.md) remain targets. Reaching those renders requires licensed production assets, skeletal animation, lighting/material work, and real-device performance testing. The generated icon and static briefing backdrop are artwork, not evidence of gameplay rendering quality.
+
+Signing, App Store metadata, App Store review, controller/device QA, and sustained performance measurements remain release tasks. There are three compact handcrafted missions, not an infinite campaign, multiplayer, or a squad-command system. Each mission takes roughly a minute in this first implementation; longer routes can be added after playtesting.
+
+On a Mac, run `bash scripts/validate_apple.sh` to execute the core tests and unsigned builds for both Apple destinations. Optional packaging checks need Python with Pillow and PyYAML (`python3 scripts/check_packaging.py`).
